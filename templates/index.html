@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Student Prediction Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            transition: background 0.4s, color 0.4s;
+            background: #f0f4f8;
+        }
+        
+        .dark-mode {
+            background: #121212 !important;
+            color: #ffffff !important;
+        }
+        
+        .dark-mode .card {
+            background: #1e1e1e !important;
+            color: #ffffff !important;
+        }
+        
+        .dark-mode .form-control,
+        .dark-mode .form-select {
+            background: #2c2c2c !important;
+            color: #ffffff !important;
+            border-color: #555 !important;
+        }
+        
+        .dark-mode .table {
+            color: #ffffff !important;
+        }
+        
+        .dark-mode .alert-info {
+            background: #1a3a4a !important;
+            color: #ffffff !important;
+            border-color: #0d6efd !important;
+        }
+        
+        .dark-mode label {
+            color: #cccccc;
+        }
+        
+        .glass-card {
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .navbar {
+            border-radius: 15px;
+        }
+        
+        .result-pass {
+            color: #198754;
+            font-weight: bold;
+        }
+        
+        .result-fail {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .badge-risk-high {
+            background-color: #dc3545;
+        }
+        
+        .badge-risk-medium {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .badge-risk-low {
+            background-color: #198754;
+        }
+        
+        .user-badge {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 13px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .role-tag {
+            background: rgba(255, 255, 0, 0.25);
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffe066;
+        }
+    </style>
+</head>
+
+<body id="body">
+
+    <div class="container mt-4 pb-5">
+
+        <!-- Navbar -->
+        <nav class="navbar navbar-dark bg-primary px-3 shadow mb-4">
+            <span class="navbar-brand mb-0 h1 fs-6">
+                🎓 AI Based Student Prediction &amp; Counselling System
+            </span>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="user-badge">
+                    👤 {{ logged_in_name }}
+                    <span class="role-tag">{{ logged_in_role }}</span>
+                </div>
+                {% if logged_in_role in ['Admin', 'HOD'] %}
+                <a href="/dashboard" class="btn btn-info btn-sm">📊 Dashboard</a> {% endif %}
+                <button onclick="toggleDarkMode()" class="btn btn-warning btn-sm">🌙</button>
+                <a href="/logout" class="btn btn-danger btn-sm">🚪 Logout</a>
+            </div>
+        </nav>
+
+        <!-- Error Alert -->
+        {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ⚠️ <strong>Error:</strong> {{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %} {% for category, message in messages %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            ✅ {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %} {% endwith %}
+
+        <!-- Form Card -->
+        <div class="card shadow-lg glass-card mb-4">
+            <div class="card-header bg-primary text-white fw-bold fs-5">
+                📝 Enter Student Details
+            </div>
+            <div class="card-body">
+
+                <form method="POST" enctype="multipart/form-data">
+
+                    <h6 class="text-muted fw-bold mb-3">👤 Personal Information</h6>
+                    <div class="row">
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Student Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" placeholder="Enter full name" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" placeholder="student@email.com" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Course <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="course" placeholder="e.g. B.Tech" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Branch <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="branch" placeholder="e.g. Computer Science" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Semester <span class="text-danger">*</span></label>
+                            <select class="form-select" name="semester" required>
+                                <option value="" disabled selected>Select Semester</option>
+                                {% for i in range(1, 9) %}
+                                <option value="Semester {{ i }}">Semester {{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Photo (Optional)</label>
+                            <input type="file" class="form-control" name="photo" accept="image/png,image/jpeg,image/jpg,image/gif">
+                        </div>
+
+                    </div>
+
+                    <hr>
+                    <h6 class="text-muted fw-bold mb-3">📚 Academic Marks (0–100)</h6>
+                    <div class="row">
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Attendance (%) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="attendance" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Internal Marks <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="internal" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Assignment <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="assignment" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Maths <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="maths" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">CN (Computer Networks) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="cn" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">ML (Machine Learning) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="ml" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Communication <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="communication" min="0" max="100" placeholder="0 - 100" required>
+                        </div>
+
+                    </div>
+
+                    <!-- Feature 5: Email Notification Checkbox -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="send_email" id="sendEmailCheck">
+                        <label class="form-check-label" for="sendEmailCheck">
+                            📧 Send result notification email to student (and CC to me) with PDF attached
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg px-4">
+                        🔍 Predict Result
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        {% if result %}
+        <div class="card shadow-lg glass-card mb-4">
+            <div class="card-header bg-success text-white fw-bold fs-5">
+                📊 Prediction Result
+            </div>
+            <div class="card-body">
+
+                <div class="alert alert-info">
+
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h4 class="mb-1">👨‍🎓 {{ name }}</h4>
+                            <small class="text-muted">{{ course }} &bull; {{ branch }} &bull; {{ semester }}</small>
+                        </div>
+                        {% if photo %}
+                        <img src="{{ url_for('static', filename='uploads/' + photo) }}" class="rounded-circle shadow" style="width:70px; height:70px; object-fit:cover;" alt="Student Photo"> {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <div class="row text-center mb-3">
+                        <div class="col-md-3 mb-2">
+                            <div class="p-3 rounded bg-white bg-opacity-25">
+                                <div class="fs-5 fw-bold {% if result == 'Pass' %}result-pass{% else %}result-fail{% endif %}">
+                                    {{ result }}
+                                </div>
+                                <small>Prediction</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="p-3 rounded bg-white bg-opacity-25">
+                                <div class="fs-5 fw-bold">{{ percentage }}%</div>
+                                <small>Overall Percentage</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="p-3 rounded bg-white bg-opacity-25">
+                                <div class="fs-5 fw-bold">{{ grade }}</div>
+                                <small>Grade</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <div class="p-3 rounded bg-white bg-opacity-25">
+                                <div class="fs-5 fw-bold">{{ risk }}</div>
+                                <small>Risk Level</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <label class="form-label fw-bold">📊 Overall Performance</label>
+                    <div class="progress mb-3" style="height: 22px;">
+                        <div class="progress-bar
+                            {% if percentage >= 75 %}bg-success
+                            {% elif percentage >= 50 %}bg-warning
+                            {% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ percentage }}%
+                        </div>
+                    </div>
+
+                    <!-- Feature 4: Placement Readiness Score -->
+                    {% if placement %}
+                    <div class="card mt-3 mb-3 border-0 shadow-sm" style="background: linear-gradient(135deg, {{ placement.color }}15, {{ placement.color }}05);
+                                border-left: 5px solid {{ placement.color }};">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                                <div>
+                                    <h5 class="mb-1">🎯 Placement Readiness Score</h5>
+                                    <span class="badge" style="background-color: {{ placement.color }}; font-size: 13px;">
+                                        {{ placement.badge }} {{ placement.category }}
+                                    </span>
+                                </div>
+
+                                <div class="text-center">
+                                    <div style="font-size: 36px; font-weight: 800; color: {{ placement.color }};">
+                                        {{ placement.score }}
+                                    </div>
+                                    <small class="text-muted">out of 100</small>
+                                </div>
+
+                            </div>
+
+                            <!-- Gauge bar -->
+                            <div class="progress mt-3" style="height: 16px; border-radius: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ placement.score }}%; background-color: {{ placement.color }};
+                                            border-radius: 10px;">
+                                </div>
+                            </div>
+
+                            <!-- Component breakdown -->
+                            <div class="row text-center mt-3 g-2">
+                                {% for comp_name, comp_value in placement.components.items() %}
+                                <div class="col-md-3 col-6">
+                                    <div class="p-2 rounded" style="background: rgba(0,0,0,0.03);">
+                                        <div class="fw-bold" style="font-size: 16px;">{{ comp_value }}</div>
+                                        <small class="text-muted" style="font-size: 11px;">{{ comp_name }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="alert alert-light border mt-3 mb-0" style="font-size: 13px;">
+                                💼 <strong>{{ placement.advice }}</strong> {% if placement.category != 'Excellent' %}
+                                <br><small class="text-muted">Weakest area: <strong>{{ placement.weakest_area }}</strong> — focus here first.</small> {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-warning mt-2 mb-3">
+                        💡 <strong>Advice:</strong> {{ advice }}
+                    </div>
+
+                    <!-- Feature 5: Email Status Message -->
+                    {% if email_status %}
+                    <div class="alert {% if email_status.ok %}alert-success{% else %}alert-danger{% endif %} mb-3">
+                        {% if email_status.ok %}✅{% else %}⚠️{% endif %} {{ email_status.msg }}
+                    </div>
+                    {% endif %}
+
+                    <a href="/download_report" class="btn btn-danger">
+                        📄 Download PDF Report
+                    </a>
+
+                </div>
+
+                {% if graph_path %}
+                <h5 class="mt-4 mb-3">📈 Marks Analysis Chart</h5>
+                <img src="{{ graph_path }}" class="img-fluid rounded shadow" alt="Marks Graph"> {% endif %}
+
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Feature 7: Search Student Record -->
+        <div class="card shadow-lg glass-card mb-3">
+            <div class="card-body py-3">
+                <form method="GET" action="/" class="d-flex gap-2 flex-wrap align-items-center">
+                    <div class="flex-grow-1" style="min-width: 220px;">
+                        <input type="text" name="search" class="form-control" placeholder="🔍 Search by name, email, branch, or course..." value="{{ search_query }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">🔍 Search</button> {% if search_query %}
+                    <a href="/" class="btn btn-outline-secondary">✖ Clear</a> {% endif %}
+                </form>
+
+                {% if search_query %}
+                <div class="mt-2">
+                    <small class="text-muted">
+                        🔎 Showing <strong>{{ search_results_count }}</strong> result(s) for
+                        "<strong>{{ search_query }}</strong>"
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- History Table -->
+        {% if history %}
+        <div class="card shadow-lg glass-card">
+            <div class="card-header bg-dark text-white fw-bold fs-5 d-flex justify-content-between align-items-center">
+                <span>📋 Prediction History</span>
+                <small class="text-light opacity-75" style="font-size: 12px;">🗄️ Stored in SQLite Database</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Course / Branch</th>
+                                <th>Semester</th>
+                                <th>Prediction</th>
+                                <th>Risk</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Placement Score</th>
+                                <th>Predicted By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in history %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ record.name }}</td>
+                                <td>{{ record.course }} / {{ record.branch }}</td>
+                                <td>{{ record.semester }}</td>
+                                <td class="{% if record.result == 'Pass' %}text-success fw-bold{% else %}text-danger fw-bold{% endif %}">
+                                    {{ record.result }}
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if record.risk == 'High Risk' %}badge-risk-high
+                                        {% elif record.risk == 'Medium Risk' %}badge-risk-medium
+                                        {% else %}badge-risk-low{% endif %}">
+                                        {{ record.risk }}
+                                    </span>
+                                </td>
+                                <td>{{ record.percentage }}%</td>
+                                <td><strong>{{ record.grade }}</strong></td>
+                                <td>
+                                    {% if record.placement_score is defined %}
+                                    <span class="badge
+                                        {% if record.placement_category == 'Excellent' %}bg-success
+                                        {% elif record.placement_category == 'Good' %}bg-primary
+                                        {% elif record.placement_category == 'Needs Improvement' %}bg-warning text-dark
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ record.placement_score }} — {{ record.placement_category }}
+                                    </span> {% else %}
+                                    <small class="text-muted">—</small> {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ record.predicted_by }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% elif search_query %}
+        <div class="card glass-card shadow text-center py-5">
+            <div style="font-size: 50px;">🔍</div>
+            <h5 class="mt-2">No students found</h5>
+            <p class="text-muted">No results matched "<strong>{{ search_query }}</strong>". Try a different name, email, branch, or course.</p>
+            <div><a href="/" class="btn btn-primary">✖ Clear Search</a></div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleDarkMode() {
+            document.getElementById("body").classList.toggle("dark-mode");
+            const btn = document.querySelector("button[onclick='toggleDarkMode()']");
+            const isDark = document.getElementById("body").classList.contains("dark-mode");
+            btn.textContent = isDark ? "☀️" : "🌙";
+        }
+    </script>
+
+</body>
+
+</html>

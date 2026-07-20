@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — AI Student Prediction System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .login-wrapper {
+            width: 100%;
+            max-width: 430px;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 40px 36px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+        
+        .login-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.4);
+        }
+        
+        .login-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+        
+        .login-subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 30px;
+        }
+        
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 6px;
+        }
+        
+        .form-control {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            color: white;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.13);
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+            color: white;
+            outline: none;
+        }
+        
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .input-icon-wrap {
+            position: relative;
+        }
+        
+        .input-icon-wrap .icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.5;
+            cursor: pointer;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #0f2027;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 172, 254, 0.45);
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .error-box {
+            background: rgba(220, 53, 69, 0.18);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #ff8a8a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .flash-success {
+            background: rgba(25, 135, 84, 0.18);
+            border: 1px solid rgba(25, 135, 84, 0.5);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #75f7a0;
+            margin-bottom: 20px;
+        }
+        
+        .divider {
+            border-color: rgba(255, 255, 255, 0.1);
+            margin: 24px 0 18px;
+        }
+        
+        .credentials-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.55);
+        }
+        
+        .credentials-box .badge-role {
+            background: rgba(79, 172, 254, 0.2);
+            color: #4facfe;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        
+        .cred-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        
+        .footer-text {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+
+            <!-- Icon -->
+            <div class="login-icon">🎓</div>
+
+            <!-- Title -->
+            <div class="login-title">Welcome Back</div>
+            <div class="login-subtitle">AI Student Prediction &amp; Counselling System</div>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %} {% for category, message in messages %}
+            <div class="flash-success">✅ {{ message }}</div>
+            {% endfor %} {% endwith %}
+
+            <!-- Error -->
+            {% if error %}
+            <div class="error-box">
+                ❌ {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form method="POST" action="/login">
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-icon-wrap">
+                        <input type="text" class="form-control" name="username" placeholder="Enter your username" required autocomplete="username">
+                        <span class="icon">👤</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div class="input-icon-wrap">
+                        <input type="password" class="form-control" name="password" id="passwordInput" placeholder="Enter your password" required autocomplete="current-password">
+                        <span class="icon" onclick="togglePassword()" title="Show/Hide">👁️</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    🔐 Login to Dashboard
+                </button>
+
+            </form>
+
+            <hr class="divider">
+
+            <!-- Demo Credentials -->
+            <div class="credentials-box">
+                <div style="font-weight:600; color:rgba(255,255,255,0.6); margin-bottom:8px;">
+                    🔑 Demo Credentials
+                </div>
+                <div class="cred-row">
+                    <span class="badge-role">Admin</span>
+                    <span>admin</span>
+                    <span style="opacity:0.4;">|</span>
+                    <span>admin123</span>
+                </div>
+                <div class="cred-row">
+                    <span class="badge-role">Teacher</span>
+                    <span>teacher</span>
+                    <span style="opacity:0.4;">|</span>
+                    <span>teacher123</span>
+                </div>
+                <div class="cred-row">
+                    <span class="badge-role">HOD</span>
+                    <span>hod</span>
+                    <span style="opacity:0.4;">|</span>
+                    <span>hod123</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-text">
+            © 2024 AI Student Prediction System &nbsp;|&nbsp; Final Year Project
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById("passwordInput");
+            input.type = input.type === "password" ? "text" : "password";
+        }
+    </script>
+
+</body>
+
+</html>
