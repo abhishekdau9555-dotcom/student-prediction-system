@@ -1,0 +1,9 @@
+flask
+pandas
+matplotlib
+scikit-learn
+reportlab
+werkzeug
+gunicorn
+numpy
+Pillow
