@@ -1,0 +1,10 @@
+venv/
+students.db
+student_report.pdf
+static/graphs/
+static/uploads/
+static/reports/
+static/graph.png
+__pycache__/
+*.pyc
+.env
