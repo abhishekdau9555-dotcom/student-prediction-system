@@ -237,8 +237,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 📬 Contact
 
-**Your Name**
-📧 your.email@example.com
+**Your Name**ABHISHEK YADAV
+📧 abhishekdau9555@gmail.com
 🔗 [LinkedIn](https://linkedin.com/in/yourprofile) | [GitHub](https://github.com/your-username)
 
 ---
